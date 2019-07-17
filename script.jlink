@@ -1,0 +1,7 @@
+ExitOnError 1
+r
+h
+loadfile "C:\Users\matlab\Documents\MCUXpressoIDE_10.3.1_2233\workspace2\uvoice1060_bare_afe\audio\voice\sln_intelligence_toolbox.bin" 0x60102000 
+qc
+
+qc
