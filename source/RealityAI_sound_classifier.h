@@ -10,6 +10,7 @@
 
 /*Classifier Definitions*/
 #define PREDICTION_BUFFER_LENGTH 8192
+#define PREDICTION_BUFFER_LENGTH_memorex 8192
 #define WINDOW_LENGTH 4096 //Length of the fft window
 #define FFT_SIZE WINDOW_LENGTH //length of the fft window
 #define STEP_SIZE WINDOW_LENGTH/2 //step size originally 2
@@ -24,6 +25,11 @@
 #define NUM_LEARNERS_c2 1
 #define FEATURE_LENGTH_c2 2048
 
+/*Memorex Classifier Definitions*/
+#define NUM_CLASSES_memorex 3
+#define NUM_LEARNERS_memorex 1
+#define FEATURE_LENGTH_memorex 2048
+
 /*RAI Classifier Definitions*/
 /*List of possible classes returned by the classifier*/
 typedef enum {noise,
@@ -35,6 +41,10 @@ typedef enum {noise,
 	siren,
 	toilet_flush,
 	vacuum_cleaner}NXP_classes;
+
+typedef enum{memorex,
+		live,
+		memorex2}Memorex_classes;
 
 typedef struct classifier_struct {
 	const float* Beta;
@@ -73,7 +83,11 @@ typedef struct output_buffers_reg {
  *  @param X(data vector, clasiifier_struct_prt, cls_defs_ptr), classifier parameter structure
  *  @return int.
  */
-//Clssifies a window of WINDOW_LENGTH
+
+//memorex Classifies a window of WINDOW_LENGTH
+NXP_classes RealityAI_memorex_classify(float *input_vector);
+
+//glassbreak Classifies a window of WINDOW_LENGTH
 NXP_classes RealityAI_glass_break_classify(float *input_vector);
 
 //updated the floating point audio buffer (full_buff) with num_samples data samples from the input_buff
