@@ -267,49 +267,6 @@ c:/nxp/mcuxpressoide_10.3.1_2233/ide/plugins/com.nxp.mcuxpresso.tools.win32_10.3
 
 Discarded input sections
 
- .text          0x00000000        0x0 ./xip/fsl_flexspi_nor_boot.o
- .data          0x00000000        0x0 ./xip/fsl_flexspi_nor_boot.o
- .bss           0x00000000        0x0 ./xip/fsl_flexspi_nor_boot.o
- .boot_hdr.boot_data
-                0x00000000       0x10 ./xip/fsl_flexspi_nor_boot.o
- .boot_hdr.ivt  0x00000000       0x20 ./xip/fsl_flexspi_nor_boot.o
- .debug_info    0x00000000      0xae4 ./xip/fsl_flexspi_nor_boot.o
- .debug_abbrev  0x00000000      0x154 ./xip/fsl_flexspi_nor_boot.o
- .debug_aranges
-                0x00000000       0x18 ./xip/fsl_flexspi_nor_boot.o
- .debug_line    0x00000000      0x1f2 ./xip/fsl_flexspi_nor_boot.o
- .debug_str     0x00000000      0xf06 ./xip/fsl_flexspi_nor_boot.o
- .comment       0x00000000       0x80 ./xip/fsl_flexspi_nor_boot.o
- .ARM.attributes
-                0x00000000       0x37 ./xip/fsl_flexspi_nor_boot.o
- .text          0x00000000        0x0 ./xip/uvoice1060_flexspi_nor_config.o
- .data          0x00000000        0x0 ./xip/uvoice1060_flexspi_nor_config.o
- .bss           0x00000000        0x0 ./xip/uvoice1060_flexspi_nor_config.o
- .boot_hdr.conf
-                0x00000000      0x200 ./xip/uvoice1060_flexspi_nor_config.o
- .debug_info    0x00000000      0xd1b ./xip/uvoice1060_flexspi_nor_config.o
- .debug_abbrev  0x00000000      0x167 ./xip/uvoice1060_flexspi_nor_config.o
- .debug_aranges
-                0x00000000       0x18 ./xip/uvoice1060_flexspi_nor_config.o
- .debug_line    0x00000000      0x1e9 ./xip/uvoice1060_flexspi_nor_config.o
- .debug_str     0x00000000     0x13ba ./xip/uvoice1060_flexspi_nor_config.o
- .comment       0x00000000       0x80 ./xip/uvoice1060_flexspi_nor_config.o
- .ARM.attributes
-                0x00000000       0x37 ./xip/uvoice1060_flexspi_nor_config.o
- .text          0x00000000        0x0 ./xip/uvoice1060_sdram_ini_dcd.o
- .data          0x00000000        0x0 ./xip/uvoice1060_sdram_ini_dcd.o
- .bss           0x00000000        0x0 ./xip/uvoice1060_sdram_ini_dcd.o
- .boot_hdr.dcd_data
-                0x00000000      0x430 ./xip/uvoice1060_sdram_ini_dcd.o
- .debug_info    0x00000000       0xd0 ./xip/uvoice1060_sdram_ini_dcd.o
- .debug_abbrev  0x00000000       0x94 ./xip/uvoice1060_sdram_ini_dcd.o
- .debug_aranges
-                0x00000000       0x18 ./xip/uvoice1060_sdram_ini_dcd.o
- .debug_line    0x00000000      0x14f ./xip/uvoice1060_sdram_ini_dcd.o
- .debug_str     0x00000000      0x21d ./xip/uvoice1060_sdram_ini_dcd.o
- .comment       0x00000000       0x80 ./xip/uvoice1060_sdram_ini_dcd.o
- .ARM.attributes
-                0x00000000       0x37 ./xip/uvoice1060_sdram_ini_dcd.o
  .text          0x00000000        0x0 ./wifi_wwd/platform/wwd_SDIO.o
  .data          0x00000000        0x0 ./wifi_wwd/platform/wwd_SDIO.o
  .bss           0x00000000        0x0 ./wifi_wwd/platform/wwd_SDIO.o
@@ -4988,9 +4945,6 @@ SRAM_OC          0x20200000         0x00080000         xrw
 
 Linker script and memory map
 
-LOAD ./xip/fsl_flexspi_nor_boot.o
-LOAD ./xip/uvoice1060_flexspi_nor_config.o
-LOAD ./xip/uvoice1060_sdram_ini_dcd.o
 LOAD ./wifi_wwd/platform/wwd_SDIO.o
 LOAD ./wifi_wwd/platform/wwd_platform.o
 LOAD ./wifi_wwd/platform/wwd_platform_separate_mcu.o

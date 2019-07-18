@@ -30,6 +30,11 @@
 #define NUM_LEARNERS_memorex 1
 #define FEATURE_LENGTH_memorex 2048
 
+/*VOICEID Classifier Definitions*/
+#define NUM_CLASSES_voiceid 5
+#define NUM_LEARNERS_voiceid 5
+#define FEATURE_LENGTH_voiceid 2048
+
 /*RAI Classifier Definitions*/
 /*List of possible classes returned by the classifier*/
 typedef enum {noise,
