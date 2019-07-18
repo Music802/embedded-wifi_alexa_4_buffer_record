@@ -6,7 +6,7 @@
  * Generated linker script file for MIMXRT1062xxxxA
  * Created from linkscript.ldt by FMCreateLinkLibraries
  * Using Freemarker v2.3.23
- * MCUXpresso IDE v10.3.1 [Build 2233] [2019-02-20] on Jul 18, 2019 1:03:21 PM
+ * MCUXpresso IDE v10.3.1 [Build 2233] [2019-02-20] on Jul 30, 2019 10:53:40 AM
  */
 
 INCLUDE "uvoice1060_bare_afe_Debug_library.ld"

@@ -32,19 +32,20 @@
 #include "sln_RT10xx_RGB_LED_driver.h"
 #include "err.h"
 #include "timers.h"
-/* Wifi */
-#include "wifi_wwd/WWD/wwd.h"
-#include "wifi_wwd/WWD/wwd_wiced.h"
-#include "lwip/tcpip.h"
-#include "wwd_network.h"
-#include "wwd_constants.h"
-#include "lwip/dhcp.h"
-#include "lwip/prot/dhcp.h"
-#include "netif/ethernet.h"
-#include "lwip/dns.h"
 
-#include "lwip/api.h"
-#include "lwip/sys.h"
+/* Wifi */
+//#include "wifi_wwd/WWD/wwd.h"
+//#include "wifi_wwd/WWD/wwd_wiced.h"
+//#include "lwip/tcpip.h"
+//#include "wwd_network.h"
+//#include "wwd_constants.h"
+//#include "lwip/dhcp.h"
+//#include "lwip/prot/dhcp.h"
+//#include "netif/ethernet.h"
+//#include "lwip/dns.h"
+//
+//#include "lwip/api.h"
+//#include "lwip/sys.h"
 
 extern uint32_t SLN_AMAZON_WAKE_Initialize();
 extern void SLN_AMAZON_WAKE_SetWakeupDetectedParams(uint8_t *pu8Wake, uint16_t *pu16WWLen);
@@ -83,14 +84,11 @@ uint8_t  *cloud_buffer;
 uint32_t cloud_buffer_len = 0;
 
 //Buffer definitions
+float mid_buff[WINDOW_LENGTH*2];
 float left_buff[WINDOW_LENGTH*2];
 float right_buff[WINDOW_LENGTH*2];
-float mid_buff[WINDOW_LENGTH*2];
+float clean_buff[WINDOW_LENGTH*2];
 int all_buff_length = 0;
-
-// Memorex mode buffer
-int NUM_WINDOWS = 3;
-int STEP_SIZE_memorex = 2048; // N-1 = (n_samples-w)/stepsize
 
 //tcp connections
 static int initialized = 0;
@@ -163,45 +161,33 @@ void audio_processing_task(void *pvParameters)
 
     //an integer to store the largest value of my_buff
     int max_buf_val;
-    int prediction_decay = 0;
-    //int my_send_buf_length = 0;
-
-    //the class output of the RealityAI_glass_break_classify() function
-    NXP_classes class_output;
-    Memorex_classes memorex_output_left;
-    Memorex_classes memorex_output_right;
-    Memorex_classes memorex_output_mid;
-    Memorex_classes mode_buff_left[NUM_WINDOWS];
-    Memorex_classes mode_buff_right[NUM_WINDOWS];
-    Memorex_classes mode_buff_mid[NUM_WINDOWS];
-    int sum_left=0, sum_right=0, sum_mid=0;
     int i,j;
 
 
     //In the tcp link has not already been initialized
-//    if(!initialized){
-//
-//    	RGB_LED_SetColor(LED_COLOR_PURPLE);
-//    	// Initialize the wifi card
-//    	//APP_NETWORK_Init();
-//    	wiced_wlan_connectivity_init();
-//   		// Initialize as an access point
-//   		test_apsta(0, NULL);
-//   		err = tcp_start_connection(&conn, &newconn);
-//
-//   		//check for an error
-//   		if (err!=ERR_OK){
-//   			//connection failure / timeout
-//   			RGB_LED_SetColor(LED_COLOR_ORANGE);
-//            //vTaskDelay(100);
-//           // RGB_LED_SetColor(LED_COLOR_OFF);
-//   		}
-//   		else{
-//   			//if successful, turn the led off
-//   			initialized = 1;
-//   			RGB_LED_SetColor(LED_COLOR_OFF);
-//   		}
-//    }
+    if(!initialized){
+
+    	RGB_LED_SetColor(LED_COLOR_PURPLE);
+    	// Initialize the wifi card
+    	//APP_NETWORK_Init();
+    	wiced_wlan_connectivity_init();
+   		// Initialize as an access point
+   		test_apsta(0, NULL);
+   		err = tcp_start_connection(&conn, &newconn);
+
+   		//check for an error
+   		if (err!=ERR_OK){
+   			//connection failure / timeout
+   			RGB_LED_SetColor(LED_COLOR_ORANGE);
+            //vTaskDelay(100);
+           // RGB_LED_SetColor(LED_COLOR_OFF);
+   		}
+   		else{
+   			//if successful, turn the led off
+   			initialized = 1;
+   			RGB_LED_SetColor(LED_COLOR_OFF);
+   		}
+    }
 
     s_pushCtr = xSemaphoreCreateCounting(2, 0);
 
@@ -254,129 +240,21 @@ void audio_processing_task(void *pvParameters)
         SLN_AMAZON_WAKE_ProcessWakeWord(cleanAudioBuff, 320);
         taskNotification &= ~currentEvent;
 
-
         //update the buffer for the sound classification
-        max_buf_val = update_audio_buffer(left_buff, pcmIn, PCM_SINGLE_CH_SMPL_COUNT);
-        max_buf_val = update_audio_buffer(right_buff, pcmIn, PCM_SINGLE_CH_SMPL_COUNT);
-        max_buf_val = update_audio_buffer(mid_buff, pcmIn, PCM_SINGLE_CH_SMPL_COUNT);
-        all_buff_length += PCM_SINGLE_CH_SMPL_COUNT;
+        max_buf_val = update_audio_buffer(left_buff, &pcmIn[0], PCM_SINGLE_CH_SMPL_COUNT);
+        max_buf_val = update_audio_buffer(right_buff, &pcmIn[PCM_SINGLE_CH_SMPL_COUNT], PCM_SINGLE_CH_SMPL_COUNT);
+        max_buf_val = update_audio_buffer(mid_buff, &pcmIn[2*PCM_SINGLE_CH_SMPL_COUNT], PCM_SINGLE_CH_SMPL_COUNT);
+        max_buf_val = update_audio_buffer(clean_buff, cleanAudioBuff, PCM_SINGLE_CH_SMPL_COUNT);
+       // all_buff_length += PCM_SINGLE_CH_SMPL_COUNT;
 
-        //if the buffer is big enough, classify the audio
-        if(all_buff_length >= PREDICTION_BUFFER_LENGTH_memorex + PCM_SINGLE_CH_SMPL_COUNT){
 
-//        	//check if the audio is close to clipping range
-//        	if(max_buf_val > 29500){ //31000 //29500
-//        		xTaskNotify(s_appTask, clippingDetected, eSetBits);
-//        		shift_and_pad_smoothing_buffers();
-//        		//tcp_send_event(newconn, clippingDetected, err);
-//        	//check if the audio is too quiet
-//        	}else if(max_buf_val < 5000){//7168 //8192
-//
-//        		//if the current quiet sample is close enough to a sample within range, classify it
-//        		if(prediction_decay > 0) {
-//        			class_output = RealityAI_glass_break_classify(my_buff);
-//
-//        			//if glassbreak is detected, notify the apptask and send a tcp packet
-//        			if(class_output == 1){
-//        			//	print_smoothing_buffers();
-//						xTaskNotify(s_appTask, glassBreakDetected, eSetBits);
-//						if(initialized){
-//							tcp_send_event(newconn, glassBreakDetected, err);
-//						}
-////						if(my_send_buf_length >= PREDICTION_BUFFER_LENGTH){
-////							tcp_send_audio_buffer(newconn, my_buff, PREDICTION_BUFFER_LENGTH, err);
-////							my_send_buf_length = 0;
-////						}
-//					}
-//        		}
-//        		//shift and pad the buffers, ignore
-//        		else{
-//        			xTaskNotify(s_appTask, lowAudioDetected, eSetBits);
-//        			shift_and_pad_smoothing_buffers();
-//        		}
-//        		//decrement the prediction_decay counter
-//        		prediction_decay--;
-//
-//        	// The audio is in the correct range,
-//        	// classify the audio in the buffer using RealityAI_glass_break_classify()
-//        	}else{
-//        		class_output = RealityAI_glass_break_classify(my_buff);
-//
-//        		//if a glassbreak is detected, notify the apptask and send a tcp notice
-//        		if(class_output == 1){
-//        		//	print_smoothing_buffers();
-//        			xTaskNotify(s_appTask, glassBreakDetected, eSetBits);
-//        			if(initialized){
-//        				tcp_send_event(newconn, glassBreakDetected, err);
-//        			}
-////        			if(my_send_buf_length >= PREDICTION_BUFFER_LENGTH){
-////        				tcp_send_audio_buffer(newconn, my_buff, PREDICTION_BUFFER_LENGTH, err);
-////        				my_send_buf_length = 0;
-////        			}
-//        		}
-//
-//        		//reset the prediction_decay counter
-//        		prediction_decay=3;
-//        	}
-
-        	//decrement the buffer length
-        	if(!wakeWordActive){
-       		//all_buff_length -= STEP_SIZE;
-       	    all_buff_length -= PCM_SINGLE_CH_SMPL_COUNT;
-        	}
-        }
-        if (wakeWordActive)
-        {
+        if (wakeWordActive){
         	wakeWordActive = 0U;
-        	// if we have enough recent data samples in the buff, classify
-			if(all_buff_length >= PREDICTION_BUFFER_LENGTH_memorex + PCM_SINGLE_CH_SMPL_COUNT){
-				// classify
-				j=0;
-				for(i=0; i<PREDICTION_BUFFER_LENGTH_memorex;i+=STEP_SIZE_memorex){
-					mode_buff_left[j] = RealityAI_memorex_classify(&left_buff[i]);
-					mode_buff_right[j] = RealityAI_memorex_classify(&right_buff[i]);
-					mode_buff_mid[j] = RealityAI_memorex_classify(&mid_buff[i]);
-					j++;
-				}
-				sum_left=0;
-				sum_right=0;
-				sum_mid=0;
-				for(j=0;j<NUM_WINDOWS;j++){
-					sum_left = sum_left+mode_buff_left[j];
-					sum_right = sum_right+mode_buff_right[j];
-					sum_mid = sum_mid+mode_buff_mid[j];
-				}
-				if(sum_left>NUM_WINDOWS/2){
-					memorex_output_left=live;
-				}
-				else{
-					memorex_output_left=memorex;
-				}
-				if(sum_right>NUM_WINDOWS/2){
-					memorex_output_right=live;
-				}
-				else{
-					memorex_output_right=memorex;
-				}
-				if(sum_mid>NUM_WINDOWS/2){
-					memorex_output_mid=live;
-				}
-				else{
-					memorex_output_mid=memorex;
-				}
-				// decrement the buffer length
-				all_buff_length -= STEP_SIZE;
-				//my_buff_length -= PCM_SINGLE_CH_SMPL_COUNT;
-			}
-        	if(memorex_output_left==memorex || memorex_output_right == memorex || memorex_output_mid ==memorex){
-				// memorex is detected
-        		xTaskNotify(s_appTask, glassBreakDetected, eSetBits);
-        	}
-        	else{
-        		// live is detected
-				// Notify App Task Wake Word Detected
-        		xTaskNotify( s_appTask, kWakeWordDetected, eSetBits);
-        	}
+        	tcp_send_audio_buffer(newconn, left_buff, WINDOW_LENGTH*2, err);
+        	tcp_send_audio_buffer(newconn, right_buff, WINDOW_LENGTH*2, err);
+        	tcp_send_audio_buffer(newconn, mid_buff, WINDOW_LENGTH*2, err);
+        	tcp_send_audio_buffer(newconn, clean_buff, WINDOW_LENGTH*2, err);
+        	xTaskNotify( s_appTask, kWakeWordDetected, eSetBits);
 
         }
     }

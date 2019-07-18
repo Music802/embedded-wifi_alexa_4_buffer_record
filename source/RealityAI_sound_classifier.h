@@ -51,6 +51,13 @@ typedef enum{memorex,
 		live,
 		memorex2}Memorex_classes;
 
+typedef enum{xavier,
+		ryan,
+		nate,
+		kirk,
+		jeff
+}VoiceID_classes;
+
 typedef struct classifier_struct {
 	const float* Beta;
 	const float* Bias;
